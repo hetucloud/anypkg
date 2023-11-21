@@ -36,6 +36,7 @@
 
  bigtop { // *the name should be change: the parsing code depends on it*
    version = "STACK-VERSION" // *required*
+   
    stack { // *required* Fundamental properties of the Stack: JDK, SDK, GDK, etc
      'jdk' { version = '1.8'; version_base = version }
      'scala' { version = '2.10.4'; version_base = version }
@@ -93,6 +94,12 @@
 
 bigtop {
 /** Base Configuration of the mirror and archives */
+  stack_prefix = "/opt"
+  stack_version = "3.3.0.1"
+  // stack package prefix, such as: spark_${stack_package_version}_${BUILD_NUMBER/BIGTOP_BUILD_STAMP}
+  stack_package_version = bigtop.stack_version.replace(".", "_")
+  stack_name = "anyscale"
+
   version = "3.3.0-SNAPSHOT"
   base_version = version.takeWhile { it != '-' }
   stack {

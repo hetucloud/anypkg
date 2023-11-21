@@ -106,7 +106,7 @@ def nativePackaging = {
     errorOutput devNull
     standardOutput devNull
   }
-  [false, [pkg:"deb", repo:"apt"], [pkg:"rpm", repo:"yum"]][result.getExitValue()]
+  [false, [pkg:"deb", repo:"apt"], [pkg:"rpm", repo:"yum"], [pkg:"parcel", repo:"parcel"]][result.getExitValue()]
 }.call()
 
 def generateDistributionsFile = { file ->
@@ -466,6 +466,75 @@ def genTasks = { target ->
     touchTargetFile(config.bigtop.components[target].targetsdeb)
   }
 
+  // parcel task
+  Task tparcel = task "$target-parcel" (dependsOn: ["${target}-sparcel"],
+    description: "Building parcel for $target artifacts",
+    group: PACKAGES_GROUP) doLast {
+    println "Parcel input:" + config.bigtop.components[target]
+    if (new File(config.bigtop.components[target].targetparcel)?.exists()) {
+      println "\tNothing to do. Exiting..."
+      return
+    }
+    def final STACK_PREFIX = config.bigtop.stack_prefix
+    def final STACK_VERSION = config.bigtop.stack_version
+    def final STACK_PACKAGE_VERSION = config.bigtop.stack_package_version
+    def final STACK_NAME = config.bigtop.stack_name
+    config.bigtop.components[target].targetparcel  = config.bigtop.components[target].builddir + '/.parcel'
+    def final PKG_NAME_SUFFIX = config.bigtop.components[target].rpm_pkg_suffix
+    def RPM_PKG_NAME_SUFFIX = PKG_NAME_SUFFIX
+    def GRADLE_PKG_NAME_SUFFIX = PKG_NAME_SUFFIX
+    if (!project.hasProperty("pkgSuffix") || !PKG_NAME_SUFFIX) {
+      RPM_PKG_NAME_SUFFIX = "%{nil}"
+      GRADLE_PKG_NAME_SUFFIX = ""
+    }
+
+    def final BIGTOP_BUILD_STAMP = System.getenv('BIGTOP_BUILD_STAMP') ?:
+            config.bigtop.components[target].version.release
+    def final STACK_INSTALL_PATH = STACK_PREFIX + "/" + STACK_NAME + "/" + STACK_VERSION + "-" + BIGTOP_BUILD_STAMP 
+    def final PKG_BUILD_DIR = config.bigtop.components[target].builddir
+    def final NAME = config.bigtop.components[target].name
+    def final PKG_NAME = config.bigtop.components[target].pkg
+    def final PKG_OUTPUT_DIR = config.bigtop.components[target].outputdir
+    def final PKG_VERSION = config.bigtop.components[target].version.pkg
+    def final BASE_VERSION = config.bigtop.components[target].version.base
+    def final HADOOP_VERSION = config.bigtop.components["hadoop"].version.pkg 
+    
+    println "STACK_VERSION: $STACK_VERSION"
+    println "STACK_PACKAGE_VERSION: $STACK_PACKAGE_VERSION"
+    println "STACK_NAME: $STACK_NAME"
+    println "PKG_BUILD_DIR: $PKG_BUILD_DIR"
+    println "STACK_INSTALL_PATH: $STACK_INSTALL_PATH"
+    println "NAME: $NAME"
+    println "PKG_NAME: $PKG_NAME"
+    println "PKG_OUTPUT_DIR: $PKG_OUTPUT_DIR"
+    println "PKG_VERSION: $PKG_VERSION"
+    println "BASE_VERSION: $BASE_VERSION"
+    println "HADOOP_VERSION: $HADOOP_VERSION"
+    print "BASE_DIR: $BASE_DIR"
+
+    def command = [
+        "${PKG_BUILD_DIR}/parcel/SPACES/${PKG_NAME}_parcel.sh",
+        '--root-dir', "$PKG_BUILD_DIR/parcel",
+        '--install-path', "$STACK_INSTALL_PATH",
+        '--stack-version', "$STACK_VERSION",
+        '--pkg-version', "$PKG_VERSION"
+    ]
+
+    exec {
+      workingDir BASE_DIR
+      executable "bash"
+      environment QA_RPATHS: 0x0002
+      args command
+    }
+    copy {
+      from fileTree("$PKG_BUILD_DIR/parcel/PARCELS") {
+        include '**/*'
+      }
+      into PKG_OUTPUT_DIR
+    }
+    touchTargetFile(config.bigtop.components[target].targetparcel)
+  }
+
   // Keeping the reference to task to be used later for correct sequencing
   Task trpm = task "$target-rpm" (dependsOn: ["${target}-srpm"],
       description: "Building RPM for $target artifacts",
@@ -545,6 +614,94 @@ def genTasks = { target ->
     config.bigtop.dependencies.each { dependsOn, dependees ->
       if (dependees.contains(trpm.name - "-rpm")) trpm.dependsOn "$dependsOn-rpm"
     }
+  
+  // If dependencies aren't explicitly set, the default build order is defined
+  // by the sequence of the components in the BOM file
+  if (!config.bigtop.dependencies && bomTasks.size() > 0)
+    tparcel.mustRunAfter "${bomTasks.get(bomTasks.size() - 1)}-parcel".toLowerCase()
+  task "$target-sparcel" (dependsOn: ["${target}_vardefines" , "${target}-tar"],
+      description: "Building SPARCEL for $target artifacts",
+      group: PACKAGES_GROUP) doLast {
+    if(new File(config.bigtop.components[target].targetsparcel)?.exists()) {
+      println "\tNothing to do. Exiting..."
+      return
+    }
+    def final BIGTOP_BASE_VERSION = "${config.bigtop.base_version}"
+
+    def final BIGTOP_BUILD_STAMP = System.getenv('BIGTOP_BUILD_STAMP') ?:
+            config.bigtop.components[target].version.release
+    def final NAME = config.bigtop.components[target].name
+    def final PKG_NAME = config.bigtop.components[target].pkg
+    def final PKG_NAME_FOR_PKG = NAME.replaceAll("-", "_")
+    def final PKG_BUILD_DIR = config.bigtop.components[target].builddir
+    def final SEED_TAR = config.bigtop.components[target].seedtar
+    def final PKG_VERSION = config.bigtop.components[target].version.pkg
+    def final BASE_VERSION = config.bigtop.components[target].version.base
+    def final PKG_OUTPUT_DIR = config.bigtop.components[target].outputdir
+    def final STACK_VERSION = PKG_VERSION + "." + config.bigtop.stack_version + "-" + BIGTOP_BUILD_STAMP
+    def final STACK_PACKAGE_VERSION = config.bigtop.stack_package_version + "_" + BIGTOP_BUILD_STAMP
+
+    safeDelete ("$PKG_BUILD_DIR/parcel")
+    ['INSTALL','SOURCES','BUILD','SPARCELS','PARCELS'].each { sparceldir ->
+      mkdir("$PKG_BUILD_DIR/parcel/$sparceldir")
+    }
+    copy {
+      from fileTree("${BASE_DIR}/bigtop-packages/src/parcel/$NAME") {
+        include '**/*'
+      }
+      into "$PKG_BUILD_DIR/parcel"
+    }
+    copy {
+      from SEED_TAR
+      into "$PKG_BUILD_DIR/parcel/SOURCES"
+    }
+    copy {
+      from "${BASE_DIR}/bigtop-packages/src/templates/init.d.tmpl"
+      into "$PKG_BUILD_DIR/parcel/SOURCES"
+    }
+    copy {
+      from "${BASE_DIR}/bigtop-packages/src/extensions"
+      into "$PKG_BUILD_DIR/parcel/SOURCES"
+      include "*"
+    }
+    copy {
+      from "${BASE_DIR}/bigtop-packages/src/scripts"
+      into "$PKG_BUILD_DIR/parcel/SOURCES"
+      include "*"
+    }
+    copy {
+      from fileTree("$BASE_DIR/bigtop-packages/src/common/$NAME") {
+        include '**/*'
+      }
+      into "$PKG_BUILD_DIR/parcel/SOURCES"
+    }
+    // Writing bigtop.bom files with all the versions
+    def bomWriter = new File("$PKG_BUILD_DIR/parcel/SOURCES/bigtop.bom").newWriter()
+    bomVersions.each { bomWriter << "$it\n"}
+    bomWriter.close()
+
+    // Build a binary package file of source code
+    def final sourceName = "$PKG_BUILD_DIR/parcel/SOURCES/"
+    def final sparcelName = PKG_NAME + "_" + STACK_PACKAGE_VERSION + "-" + STACK_VERSION + ".src.parcel"
+    def command = [
+        "-czf",
+        "$PKG_BUILD_DIR/parcel/SPARCELS/$sparcelName",
+        "-C",
+        "$sourceName",
+        "."
+    ]
+    exec {
+      workingDir BASE_DIR
+      executable 'tar'
+      args command
+    }
+    mkdir(PKG_OUTPUT_DIR)
+    copy {
+      from "$PKG_BUILD_DIR/parcel/SPARCELS/${sparcelName}"
+      into PKG_OUTPUT_DIR
+    }
+    touchTargetFile(config.bigtop.components[target].targetsparcel) 
+  }
   // If dependencies aren't explicitly set, the default build order is defined
   // by the sequence of the components in the BOM file
   if (!config.bigtop.dependencies && bomTasks.size() > 0)
@@ -772,6 +929,9 @@ def genTasks = { target ->
     config.bigtop.components[target].targetsdeb  = config.bigtop.components[target].builddir + '/.sdeb'
     config.bigtop.components[target].targetdeb  = config.bigtop.components[target].builddir + '/.deb'
     config.bigtop.components[target].targetrelnotes  = config.bigtop.components[target].builddir + '/.relnotes'
+    // new arch
+    config.bigtop.components[target].targetsparcel  = config.bigtop.components[target].builddir + '/.sparcel'
+    config.bigtop.components[target].targetparcel  = config.bigtop.components[target].builddir + '/.parcel'
 
     if (System.getProperty(VERBOSE)) {
       println "$target properties (explcit and derived)"
@@ -874,6 +1034,12 @@ project.afterEvaluate {
       group: PACKAGES_GROUP) doLast {
     delete (DL_DIR)
   }
+}
+
+task "parcel" (
+  description: "Creating parcel repository",
+  group: PACKAGES_GROUP) doLast {
+    // TODO: binary generate repo
 }
 
 task "apt" (

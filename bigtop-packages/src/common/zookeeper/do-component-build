@@ -19,6 +19,8 @@ set -ex
 . `dirname ${0}`/bigtop.bom
 
 mvn clean install -DskipTests -Pfull-build
+# if TARGET == PARCEL, Optional: PARCEL|RPM|DEB
+cp -r zookeeper-assembly/target/apache-zookeeper-${ZOOKEEPER_VERSION}-*.tar.gz ../../../../../output/zookeeper/
 (cd zookeeper-contrib/zookeeper-contrib-rest ; mvn dependency:copy-dependencies)
 
 mkdir -p build
