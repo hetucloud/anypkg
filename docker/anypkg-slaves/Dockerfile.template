@@ -13,14 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM bigtop/puppet:trunk-centos-7-arm64
+FROM midtao/puppet:PREFIX-OS-VERSION
 
 MAINTAINER dev@bigtop.apache.org
 
-COPY bigtop_toolchain /etc/puppet/modules/bigtop_toolchain
+COPY bigtop_toolchain PUPPET_MODULES
 
 RUN if [ -f ~/.bash_profile ]; then . ~/.bash_profile; fi && \
-    yum clean all && yum updateinfo && \
+    UPDATE_SOURCE && \
     puppet apply -e "include bigtop_toolchain::installer" || if [ $? -ne 2 ]; then exit 1; fi
 COPY . /tmp/bigtop
 RUN cd /tmp/bigtop && ./gradlew && cd && rm -rf /tmp/*
