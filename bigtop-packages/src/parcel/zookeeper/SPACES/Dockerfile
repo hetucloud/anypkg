@@ -24,4 +24,3 @@ COPY etc /etc
 COPY opt /opt
 COPY usr /usr
 COPY var /var
-RUN chmod +x /usr/bin/*

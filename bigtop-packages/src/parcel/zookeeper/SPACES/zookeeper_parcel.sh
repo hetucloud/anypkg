@@ -24,6 +24,7 @@ usage: $0 <options>
      --install-path=INSTALL_PATH     path to install dir 
      --root-dir=ROOT_DIR             path to root dir 
      --stack-version=STACK_VERSION   stack version
+     --build-number=BUILD_NUMBER     build number
      --pkg-version=PKG_VERSION       pkg version
   "
   exit 1
@@ -35,6 +36,7 @@ OPTS=$(getopt \
   -l 'root-dir:' \
   -l 'stack-version:' \
   -l 'pkg-version:' \
+  -l 'build-number:' \
   -l 'install-path:' -- "$@")
 
 if [ $? != 0 ] ; then
@@ -52,6 +54,9 @@ while true ; do
         ;;
         --pkg-version)
         PKG_VERSION=$2 ; shift 2
+        ;;
+        --build-number)
+        BUILD_NUMBER=$2 ; shift 2
         ;;
         --root-dir)
         ROOT_DIR=$2 ; shift 2
@@ -90,6 +95,7 @@ doc_zookeeper="${doc_dir}"
 
 # For examples: ROOT_DIR = /ws/bigtop/build/zookeeper/parcel
 PARCEL_SOURCE_DIR="${ROOT_DIR}/SOURCES"
+PARCEL_SPACES_DIR="${ROOT_DIR}/SPACES"
 SPARCE_TARGET_DIR="${ROOT_DIR}/PARCELS"
 PARCEL_BUILD_ROOT="${ROOT_DIR}/BUILD"
 PARCEL_INSTALL_PREFX="${ROOT_DIR}/INSTALL"
@@ -122,8 +128,12 @@ popd
 tar -czvf $SPARCE_TARGET_DIR/"$PKG_NAME"_"$PKG_VERSION"-"$STACK_VERSION".parcel  -C $PARCEL_INSTALL_PREFX .
 
 # Docker build image
-# Note: That podman needs to be run as a non-root user
-# pushd "$PARCEL_INSTALL_PREFX"
-# podman build -t midtao/zookeeper:$PKG_VERSION.$STACK_VERSION -f $PARCEL_SOURCE_DIR/Dockerfile .
-# podman push midtao/zookeeper:$PKG_VERSION.$STACK_VERSION
-# popd
+# Note: That docker needs to be run as a root user
+pushd "$PARCEL_INSTALL_PREFX"
+IMAGE_VERSION=$PKG_VERSION.$STACK_VERSION-$BUILD_NUMBER
+if [ -n "$DOCKER_CREDENTIALS" ]; then
+  docker build -t hetudb/zookeeper:$IMAGE_VERSION -f $PARCEL_SPACES_DIR/Dockerfile .
+  echo ${DOCKER_CREDENTIALS} | docker login -u ${DOCKER_USER} --password-stdin
+  docker push hetudb/zookeeper:$IMAGE_VERSION
+fi
+popd

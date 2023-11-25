@@ -517,6 +517,7 @@ def genTasks = { target ->
         '--root-dir', "$PKG_BUILD_DIR/parcel",
         '--install-path', "$STACK_INSTALL_PATH",
         '--stack-version', "$STACK_VERSION",
+        '--build-number', "$BIGTOP_BUILD_STAMP",
         '--pkg-version', "$PKG_VERSION"
     ]
 
