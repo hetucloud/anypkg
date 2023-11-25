@@ -130,7 +130,7 @@ tar -czvf $SPARCE_TARGET_DIR/"$PKG_NAME"_"$PKG_VERSION"-"$STACK_VERSION".parcel 
 # Docker build image
 # Note: That docker needs to be run as a root user
 pushd "$PARCEL_INSTALL_PREFX"
-IMAGE_VERSION=$PKG_VERSION.$STACK_VERSION-$BUILD_NUMBER
+IMAGE_VERSION=$PKG_VERSION-$STACK_VERSION-$BUILD_NUMBER
 if [ -n "$DOCKER_CREDENTIALS" ]; then
   docker build -t hetudb/zookeeper:$IMAGE_VERSION -f $PARCEL_SPACES_DIR/Dockerfile .
   echo ${DOCKER_CREDENTIALS} | docker login -u ${DOCKER_USER} --password-stdin
