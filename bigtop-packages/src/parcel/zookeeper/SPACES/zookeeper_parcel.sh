@@ -137,3 +137,7 @@ if [ -n "$DOCKER_CREDENTIALS" ]; then
   docker push hetudb/zookeeper:$IMAGE_VERSION
 fi
 popd
+
+# Clean build generate temp dir.
+rm -rf $PARCEL_BUILD_ROOT/apache-$PKG_NAME-$PKG_VERSION
+rm -rf $PARCEL_INSTALL_PREFX/* 
