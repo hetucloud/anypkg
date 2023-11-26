@@ -172,6 +172,7 @@ if [ "${WORKDIR}" != "${RELEASE_DIR}" ]; then
   rm -rf ${WORKDIR}
 fi
 
+cp -r build/oozie${VERSION_SUFFIX}.tar.gz ../../../../../output/oozie/
 echo "Build available at: ${RELEASE_DIR}/build"
 
 (cd ${RELEASE_DIR} ; tar --strip-components 1 -xzvf build/oozie${VERSION_SUFFIX}.tar.gz; rm -f bin/mkdistro.sh)

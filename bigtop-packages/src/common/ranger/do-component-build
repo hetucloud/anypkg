@@ -39,3 +39,5 @@ for f in target/ranger*.tar.gz
 do
 	tar -C build -xf ${f}
 done
+
+cp -r target/ranger*.tar.gz ../../../../../output/ranger/

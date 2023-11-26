@@ -20,6 +20,7 @@ set -ex
 
 mvn clean package -DskipTests "$@"
 
+cp -r distribution/target/ycsb-$YCSB_VERSION.tar.gz ../../../../../output/ycsb/
 rm -rf build/dist
 mkdir -p build/dist
 tar -C build/dist --strip-components=1 -xzf distribution/target/ycsb-$YCSB_VERSION.tar.gz

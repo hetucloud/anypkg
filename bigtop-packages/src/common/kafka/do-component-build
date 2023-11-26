@@ -43,3 +43,4 @@ mkdir build
   
 cp core/build/distributions/kafka_*.tgz build/
 
+cp -r core/build/distributions/kafka_*.tgz ../../../../../output/kafka/

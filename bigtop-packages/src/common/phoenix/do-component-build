@@ -38,4 +38,5 @@ mvn ${MVN_ARGS} clean install "$@"
 rm -rf build
 mkdir build
 
+cp -r phoenix-assembly/target/phoenix-hbase-${HBASE_VERSION%.*}-${PHOENIX_VERSION}-bin.tar.gz ../../../../../output/phoenix/
 tar -C build --strip-components=1 -xzf phoenix-assembly/target/phoenix-hbase-${HBASE_VERSION%.*}-${PHOENIX_VERSION}-bin.tar.gz

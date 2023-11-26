@@ -31,4 +31,5 @@ LIVY_BUILD_OPTS="-Drat.skip=true \
 
 mvn install $LIVY_BUILD_OPTS "$@"
 
+cp -r assembly/target/apache-livy-$LIVY_VERSION-incubating-bin.zip ../../../../../output/livy/
 unzip assembly/target/apache-livy-$LIVY_VERSION-incubating-bin.zip && mv apache-livy-$LIVY_VERSION-incubating-bin build

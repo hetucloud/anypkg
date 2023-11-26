@@ -20,6 +20,7 @@ set -ex
 
 mvn clean install -DskipTests -Pfull-build
 # if TARGET == PARCEL, Optional: PARCEL|RPM|DEB
+# TODO: check tarball it exists
 cp -r zookeeper-assembly/target/apache-zookeeper-${ZOOKEEPER_VERSION}-*.tar.gz ../../../../../output/zookeeper/
 (cd zookeeper-contrib/zookeeper-contrib-rest ; mvn dependency:copy-dependencies)
 

@@ -76,5 +76,6 @@ sed -i "s/^.*ZEPPELIN_PID=.*$/ZEPPELIN_PID=\"\$\{ZEPPELIN_PID_DIR\}\/zeppelin\-\
 
 mvn $BUILD_OPTS clean package -pl ''$EXCLUDE_INTERPRETERS'' -am
 
+cp -r zeppelin-distribution/target/zeppelin-*.tar.gz ../../../../../output/zeppelin/
 mkdir -p build/dist
 tar -C build/dist --strip-components=1 -xzf zeppelin-distribution/target/zeppelin-*.tar.gz

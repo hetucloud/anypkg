@@ -34,3 +34,5 @@ BUILD_TEZ_OPTS="clean package \
 -DskipTests"
 
 mvn ${BUILD_TEZ_OPTS} "$@"
+
+cp -r tez-dist/target/tez-${TEZ_VERSION}-*.tar.gz ../../../../../output/tez/

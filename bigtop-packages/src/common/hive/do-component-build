@@ -44,6 +44,7 @@ elif [ $HOSTTYPE = "aarch64" ] ; then
 fi
 mvn ${HIVE_MAVEN_OPTS} clean install ${EXTRA_GOALS} -Pdist "$@"
 
+cp -r packaging/target/apache-hive-${HIVE_VERSION}-bin.tar.gz ../../../../../output/hive/
 mkdir -p build/dist
 tar -C build/dist --strip-components=1 -xzf packaging/target/apache-hive-${HIVE_VERSION}-bin.tar.gz
 
