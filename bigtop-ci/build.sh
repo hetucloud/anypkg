@@ -78,7 +78,7 @@ if [ "$UNSATISFIED" == true ]; then
     usage
 fi
 
-IMAGE_NAME=bigtop/slaves:$PREFIX-$OS
+IMAGE_NAME=midtao/slaves:$PREFIX-$OS
 ARCH=$(uname -m)
 if [ "x86_64" != $ARCH ]; then
     IMAGE_NAME=$IMAGE_NAME-$ARCH
