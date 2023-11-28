@@ -94,16 +94,25 @@ lib_dir="/usr/lib"
 doc_hadoop="${doc_dir}"
 
 # For examples: ROOT_DIR = /ws/bigtop/build/hadoop/parcel
+PARCELS_DIR="${ROOT_DIR}/PARCELS"
+SPARCELS_DIR="${ROOT_DIR}/SPARCELS"
 PARCEL_SOURCE_DIR="${ROOT_DIR}/SOURCES"
-SPARCE_TARGET_DIR="${ROOT_DIR}/PARCELS"
 PARCEL_BUILD_ROOT="${ROOT_DIR}/BUILD"
 PARCEL_INSTALL_PREFX="${ROOT_DIR}/INSTALL"
 
+
 # Build
+tar -zxvf $SPARCELS_DIR/${PKG_NAME}*-$PKG_VERSION.$STACK_VERSION-$BUILD_NUMBER.src.parcel -C $PARCEL_BUILD_ROOT  
 file_name=$PKG_NAME-$PKG_VERSION.tar.gz
-tar -zxvf $PARCEL_SOURCE_DIR/$file_name -C $PARCEL_BUILD_ROOT 
+tar -zxvf $PARCEL_BUILD_ROOT/$file_name -C $PARCEL_BUILD_ROOT 
+
 pushd $PARCEL_BUILD_ROOT/$PKG_NAME-$PKG_VERSION-src 
-bash $PARCEL_SOURCE_DIR/do-component-build
+## Prep: patch
+cp -r ../patch*.diff . 
+#BIGTOP_PATCH_COMMANDS
+
+## Compile
+bash ../do-component-build
 popd
 
 # Install
@@ -123,7 +132,7 @@ rm -rf "$PARCEL_INSTALL_PREFX/*"
 # popd
 
 # Generate parcel pkg
-# tar -czvf $SPARCE_TARGET_DIR/"$PKG_NAME"_"$PKG_VERSION"-"$STACK_VERSION".parcel  -C $PARCEL_INSTALL_PREFX .
+# tar -czvf $PARCELS_DIR/"$PKG_NAME"_"$PKG_VERSION"-"$STACK_VERSION".parcel  -C $PARCEL_INSTALL_PREFX .
 
 # Docker build image
 # Note: That podman needs to be run as a non-root user
