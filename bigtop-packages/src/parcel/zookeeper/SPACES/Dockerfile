@@ -22,5 +22,4 @@ ENV JAVA_HOME /usr/lib/jvm/default-jvm
 RUN ln -s /usr/lib/jvm/java-11-openjdk /usr/lib/jvm/default-jvm
 COPY etc /etc
 COPY opt /opt
-COPY usr /usr
 COPY var /var

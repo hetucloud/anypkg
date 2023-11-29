@@ -80,67 +80,69 @@ for var in ROOT_DIR INSTALL_PATH; do
 done
 
 # Parameter define
-PKG_NAME="zookeeper"
-etc_default="${INSTALL_PATH}/etc/default"
-# TODO: zookeeper home dir
-usr_lib_zookeeper="${INSTALL_PATH}/${PKG_NAME}"
-etc_zookeeper_conf_dist="${INSTALL_PATH}/etc/${PKG_NAME}/conf.dist"
+PKG_NAME="tez"
 
-bin_dir="${usr_lib_zookeeper}/bin"
-man_dir="${usr_lib_zookeeper}/man"
-doc_dir="${usr_lib_zookeeper}/doc"
-include_dir="${INSTALL_PATH}/include"
-lib_dir="${INSTALL_PATH}/lib"
-doc_zookeeper="${doc_dir}"
+usr_lib_tez=${INSTALL_PATH}/${PKG_NAME}
+etc_tez=${INSTALL_PATH}/etc/${PKG_NAME}
 
-# For examples: ROOT_DIR = /ws/bigtop/build/zookeeper/parcel
+usr_lib_hadoop=${INSTALL_PATH}/hadoop
+
+bin_dir="${usr_lib_tez}/bin"
+man_dir="${usr_lib_tez}/man"
+doc_dir="${usr_lib_tez}/doc"
+
+# No prefix directory
+np_var_log_tez=/var/log/${PKG_NAME}
+np_var_run_tez=/var/run/${PKG_NAME}
+np_etc_tez=/etc/${PKG_NAME}
+
+doc_tez=${doc_dir}/${PKG_NAME}-${PKG_VERSION}
+
+# For examples: ROOT_DIR = /ws/anypkg/build/hadoop/parcel
 PARCELS_DIR="${ROOT_DIR}/PARCELS"
 SPARCELS_DIR="${ROOT_DIR}/SPARCELS"
 PARCEL_SOURCE_DIR="${ROOT_DIR}/SOURCES"
-PARCEL_SPACES_DIR="${ROOT_DIR}/SPACES"
 PARCEL_BUILD_ROOT="${ROOT_DIR}/BUILD"
 PARCEL_INSTALL_PREFX="${ROOT_DIR}/INSTALL"
 
 # Build
 tar -zxvf $SPARCELS_DIR/${PKG_NAME}*-$PKG_VERSION.$STACK_VERSION-$BUILD_NUMBER.src.parcel -C $PARCEL_BUILD_ROOT  
-file_name=apache-$PKG_NAME-$PKG_VERSION.tar.gz
+file_name=apache-$PKG_NAME-$PKG_VERSION-src.tar.gz
 tar -zxvf $PARCEL_BUILD_ROOT/$file_name -C $PARCEL_BUILD_ROOT 
 
-pushd $PARCEL_BUILD_ROOT/apache-$PKG_NAME-$PKG_VERSION 
+pushd $PARCEL_BUILD_ROOT/apache-$PKG_NAME-$PKG_VERSION-src 
+## Prep: patch
+cp -r ../patch*.diff . 
+#BIGTOP_PATCH_COMMANDS
+
+## Compile
 bash ../do-component-build
 popd
 
 # Install
-rm -rf "$PARCEL_INSTALL_PREFX/*"
-pushd $PARCEL_BUILD_ROOT/apache-$PKG_NAME-$PKG_VERSION 
-cp $PARCEL_SOURCE_DIR/zookeeper.1 $PARCEL_SOURCE_DIR/zoo.cfg $PARCEL_SOURCE_DIR/zookeeper.default .
-bash ../install_zookeeper.sh \
-          --build-dir=build \
-          --prefix=$PARCEL_INSTALL_PREFX \
-          --doc-dir=${doc_zookeeper} \
-          --lib-dir=${usr_lib_zookeeper} \
-          --bin-dir=${bin_dir} \
-          --man-dir=${man_dir} \
-          --conf-dist-dir=${etc_zookeeper_conf_dist} \
-          --etc-default=${etc_default} \
-          --system-include-dir=${include_dir} \
-          --system-lib-dir=${lib_dir}
+rm -rf $PARCEL_INSTALL_PREFX/*
+pushd $PARCEL_BUILD_ROOT/apache-$PKG_NAME-$PKG_VERSION-src 
+cp -r $PARCEL_SOURCE_DIR/tez.1 $PARCEL_SOURCE_DIR/tez-site.xml .
+bash ../install_tez.sh\
+    --build-dir=. \
+    --prefix=$PARCEL_INSTALL_PREFX \
+    --man-dir=${man_dir} \
+    --doc-dir=${doc_tez} \
+    --lib-dir=${usr_lib_tez} \
+    --etc-tez=${etc_tez}
 popd
+
+rm -f $PARCEL_BUILD_ROOT/${usr_lib_tez}/lib/slf4j-log4j12-*.jar
+# TODO: move to docker build
+#ln -s -f ${usr_lib_hadoop}/hadoop-annotations-*.jar $PARCEL_BUILD_ROOT/${usr_lib_tez}/lib/hadoop-annotations.jar
+#ln -s -f ${usr_lib_hadoop}/hadoop-auth-*.jar $PARCEL_BUILD_ROOT/${usr_lib_tez}/lib/hadoop-auth.jar
+#ln -s -f ${usr_lib_hadoop}-mapreduce/hadoop-mapreduce-client-common-*.jar $PARCEL_BUILD_ROOT/${usr_lib_tez}/lib/hadoop-mapreduce-client-common.jar
+#ln -s -f ${usr_lib_hadoop}-mapreduce/hadoop-mapreduce-client-core-*.jar $PARCEL_BUILD_ROOT/${usr_lib_tez}/lib/hadoop-mapreduce-client-core.jar
+#ln -s -f ${usr_lib_hadoop}-yarn/hadoop-yarn-server-web-proxy-*.jar $PARCEL_BUILD_ROOT/${usr_lib_tez}/lib/hadoop-yarn-server-web-proxy.jar
+
+PARCEL_VERSION=$PKG_VERSION-$STACK_VERSION-$BUILD_NUMBER
 
 # Generate parcel pkg
-PARCEL_VERSION=$PKG_VERSION-$STACK_VERSION-$BUILD_NUMBER
-tar -czvf $PARCELS_DIR/zookeeper_$PARCEL_VERSION.parcel  -C $PARCEL_INSTALL_PREFX .
+tar -czvf $PARCELS_DIR/tez_$PARCEL_VERSION.parcel  -C $PARCEL_INSTALL_PREFX .
 
 # Docker build image
-# Note: That docker needs to be run as a root user
-pushd "$PARCEL_INSTALL_PREFX"
-if [ -n "$DOCKER_CREDENTIALS" ]; then
-  docker build -t hetudb/zookeeper:$PARCEL_VERSION -f $PARCEL_SPACES_DIR/Dockerfile .
-  echo ${DOCKER_CREDENTIALS} | docker login -u ${DOCKER_USER} --password-stdin
-  docker push hetudb/zookeeper:$IMAGE_VERSION
-fi
-popd
-
-# Clean build generate temp dir.
-rm -rf $PARCEL_BUILD_ROOT/apache-$PKG_NAME-$PKG_VERSION
-rm -rf $PARCEL_INSTALL_PREFX/* 

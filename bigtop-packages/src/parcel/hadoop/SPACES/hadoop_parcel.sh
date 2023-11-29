@@ -81,9 +81,8 @@ done
 
 # Parameter define
 PKG_NAME="hadoop"
-etc_default="/etc/default"
-# TODO: hadoop home dir
-usr_lib_hadoop="${INSTALL_PATH}/${PKG_NAME}"
+etc_default=${INSTALL_PATH}/etc/default
+usr_lib_hadoop=${INSTALL_PATH}/${PKG_NAME}
 usr_lib_hdfs=${INSTALL_PATH}/${PKG_NAME}-hdfs
 usr_lib_yarn=${INSTALL_PATH}/${PKG_NAME}-yarn
 usr_lib_mapreduce=${INSTALL_PATH}/${PKG_NAME}-mapreduce
@@ -91,16 +90,29 @@ var_lib_hdfs=${INSTALL_PATH}/${PKG_NAME}-hdfs
 var_lib_mapreduce=${INSTALL_PATH}/${PKG_NAME}-mapreduce
 var_lib_httpfs=${INSTALL_PATH}/${PKG_NAME}-httpfs
 var_lib_kms=${INSTALL_PATH}/${PKG_NAME}-kms
-etc_hadoop_conf_dist="${INSTALL_PATH}/etc/${PKG_NAME}/conf.dist"
+etc_hadoop_conf_dist=${INSTALL_PATH}/etc/${PKG_NAME}/conf.dist
 
 usr_lib_zookeeper=${INSTALL_PATH}/zookeeper
 
 bin_dir="${usr_lib_hadoop}/bin"
 man_dir="${usr_lib_hadoop}/man"
 doc_dir="${usr_lib_hadoop}/doc"
-include_dir="/usr/include"
-lib_dir="/usr/lib"
+include_dir="${INSTALL_PATH}/include"
+lib_dir="${INSTALL_PATH}/lib"
 doc_hadoop="${doc_dir}"
+
+# No prefix directory
+np_var_log_yarn=/var/log/${PKG_NAME}-yarn
+np_var_log_hdfs=/var/log/${PKG_NAME}-hdfs
+np_var_log_httpfs=/var/log/${PKG_NAME}-httpfs
+np_var_log_kms=/var/log/${PKG_NAME}-kms
+np_var_log_mapreduce=/var/log/${PKG_NAME}-mapreduce
+np_var_run_yarn=/var/run/${PKG_NAME}-yarn
+np_var_run_hdfs=/var/run/${PKG_NAME}-hdfs
+np_var_run_httpfs=/var/run/${PKG_NAME}-httpfs
+np_var_run_kms=/var/run/${PKG_NAME}-kms
+np_var_run_mapreduce=/var/run/${PKG_NAME}-mapreduce
+np_etc_hadoop=/etc/${PKG_NAME}
 
 # For examples: ROOT_DIR = /ws/anypkg/build/hadoop/parcel
 PARCELS_DIR="${ROOT_DIR}/PARCELS"
@@ -126,7 +138,7 @@ popd
 # Install
 rm -rf $PARCEL_INSTALL_PREFX/*
 pushd $PARCEL_BUILD_ROOT/$PKG_NAME-$PKG_VERSION-src 
-bash $PARCEL_SOURCE_DIR/install_hadoop.sh \
+bash ../install_hadoop.sh \
   --distro-dir=$PARCEL_SOURCE_DIR \
   --build-dir=$PWD/build \
   --prefix=$PARCEL_INSTALL_PREFX \
@@ -151,13 +163,9 @@ popd
 # Forcing Zookeeper dependency to be on the packaged jar
 # TODO ln -s ${usr_lib_zookeeper}/zookeeper.jar $PARCEL_BUILD_ROOT/${usr_lib_hadoop}/lib/zookeeper-[[:digit:]]*.jar
 
+PARCEL_VERSION=$PKG_VERSION-$STACK_VERSION-$BUILD_NUMBER
+
 # Generate parcel pkg
-tar -czvf $PARCELS_DIR/"$PKG_NAME"_"$PKG_VERSION"-"$STACK_VERSION".parcel  -C $PARCEL_INSTALL_PREFX .
+tar -czvf $PARCELS_DIR/hadoop_$PARCEL_VERSION.parcel  -C $PARCEL_INSTALL_PREFX .
 
 # Docker build image
-# Note: That podman needs to be run as a non-root user
-# pushd "$PARCEL_INSTALL_PREFX"
-# IMAGE_VERSION=$PKG_VERSION-$STACK_VERSION-$BUILD_NUMBER
-# podman build -t midtao/hadoop:$PKG_VERSION.$STACK_VERSION -f $PARCEL_SOURCE_DIR/Dockerfile .
-# podman push midtao/hadoop:$PKG_VERSION.$STACK_VERSION
-# popd
