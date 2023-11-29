@@ -82,8 +82,9 @@ done
 # Parameter define
 PKG_NAME="zookeeper"
 etc_default="${INSTALL_PATH}/etc/default"
-# TODO: zookeeper home dir
+
 usr_lib_zookeeper="${INSTALL_PATH}/${PKG_NAME}"
+var_lib_zookeeper="${INSTALL_PATH}/${PKG_NAME}"
 etc_zookeeper_conf_dist="${INSTALL_PATH}/etc/${PKG_NAME}/conf.dist"
 
 bin_dir="${usr_lib_zookeeper}/bin"
@@ -91,7 +92,13 @@ man_dir="${usr_lib_zookeeper}/man"
 doc_dir="${usr_lib_zookeeper}/doc"
 include_dir="${INSTALL_PATH}/include"
 lib_dir="${INSTALL_PATH}/lib"
-doc_zookeeper="${doc_dir}"
+
+# No prefix directory
+np_var_log_zookeeper=${INSTALL_PATH}/var/log/${PKG_NAME}
+np_var_run_zookeeper=${INSTALL_PATH}/var/run/${PKG_NAME}
+np_etc_zookeeper=${INSTALL_PATH}/etc/${PKG_NAME}
+
+doc_zookeeper=${doc_dir}/${PKG_NAME}-${PKG_VERSION}
 
 # For examples: ROOT_DIR = /ws/bigtop/build/zookeeper/parcel
 PARCELS_DIR="${ROOT_DIR}/PARCELS"
@@ -137,7 +144,7 @@ pushd "$PARCEL_INSTALL_PREFX"
 if [ -n "$DOCKER_CREDENTIALS" ]; then
   docker build -t hetudb/zookeeper:$PARCEL_VERSION -f $PARCEL_SPACES_DIR/Dockerfile .
   echo ${DOCKER_CREDENTIALS} | docker login -u ${DOCKER_USER} --password-stdin
-  docker push hetudb/zookeeper:$IMAGE_VERSION
+  docker push hetudb/zookeeper:$PARCEL_VERSION
 fi
 popd
 
