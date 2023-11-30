@@ -80,26 +80,29 @@ for var in ROOT_DIR INSTALL_PATH; do
 done
 
 # Parameter define
-PKG_NAME="kafka"
+PKG_NAME="flink"
 
 etc_default="${INSTALL_PATH}/etc/default"
 
-usr_lib_kafka=${INSTALL_PATH}/${PKG_NAME}
-var_lib_kafka=${INSTALL_PATH}/${PKG_NAME}
-etc_kafka_conf_dist=${INSTALL_PATH}/etc/${PKG_NAME}/conf.dist
+usr_lib_flink=${INSTALL_PATH}/${PKG_NAME}
+var_lib_flink=${INSTALL_PATH}/${PKG_NAME}
+etc_flink=${INSTALL_PATH}/etc/${PKG_NAME}
 
-usr_lib_zookeeper=${INSTALL_PATH}/zookeeper
+usr_lib_hadoop=${INSTALL_PATH}/hadoop
+etc_hadoop=${INSTALL_PATH}/etc/hadoop
 
-bin_dir="${usr_lib_kafka}/bin"
-man_dir="${usr_lib_kafka}/man"
-doc_dir="${usr_lib_kafka}/doc"
+bin_dir="${usr_lib_flink}/bin"
+man_dir="${usr_lib_flink}/man"
+doc_dir="${usr_lib_flink}/doc"
+
 
 # No prefix directory
-np_var_log_kafka=${INSTALL_PATH}/var/log/${PKG_NAME}
-np_var_run_kafka=${INSTALL_PATH}/var/run/${PKG_NAME}
-np_etc_kafka=${INSTALL_PATH}/etc/${PKG_NAME}
+np_var_log_flink=${INSTALL_PATH}/var/log/${PKG_NAME}
+np_etc_flink=${INSTALL_PATH}/etc/${PKG_NAME}
 
-doc_kafka=${doc_dir}/kafka-${PKG_VERSION}
+build_target_flink=flink-dist/target/${PKG_NAME}-${PKG_VERSION}-bin/${PKG_NAME}-${PKG_VERSION}/
+
+doc_flink=${doc_dir}/${PKG_NAME}-${PKG_VERSION}
 
 # For
 PARCELS_DIR="${ROOT_DIR}/PARCELS"
@@ -114,7 +117,7 @@ tar -zxvf $SPARCELS_DIR/${PKG_NAME}*-$PKG_VERSION.$STACK_VERSION-$BUILD_NUMBER.s
 file_name=$PKG_NAME-$PKG_VERSION.tar.gz
 tar -zxvf $PARCEL_BUILD_ROOT/$file_name -C $PARCEL_BUILD_ROOT 
 
-pushd $PARCEL_BUILD_ROOT/$PKG_NAME-$PKG_VERSION-src
+pushd $PARCEL_BUILD_ROOT/$PKG_NAME-$PKG_VERSION
 ## Prep: patch
 cp -r ../patch*.diff . 
 #BIGTOP_PATCH_COMMANDS
@@ -125,35 +128,32 @@ popd
 
 # Install
 rm -rf "$PARCEL_INSTALL_PREFX/*"
-pushd $PARCEL_BUILD_ROOT/$PKG_NAME-$PKG_VERSION-src
-bash ../install_kafka.sh \
-          --build-dir=`pwd` \
-          --source-dir=$PARCEL_SOURCE_DIR \
-          --prefix=$PARCEL_INSTALL_PREFX \
-          --doc-dir=${doc_kafka} \
-          --lib-dir=${usr_lib_kafka} \
-          --var-dir=${var_lib_kafka} \
-          --bin-dir=${bin_dir} \
-          --man-dir=${man_dir} \
-          --conf-dist-dir=${etc_kafka_conf_dist} \
-          --etc-default=${etc_default} \
-          --lib-zookeeper-dir=${usr_lib_zookeeper}
+pushd $PARCEL_BUILD_ROOT/$PKG_NAME-$PKG_VERSION
+sh -x ../install_flink.sh \
+    --prefix=$PARCEL_INSTALL_PREFX \
+    --source-dir=$PARCEL_SOURCE_DIR \
+    --build-dir=`pwd`/${build_target_flink} \
+    --lib-dir=${usr_lib_flink} \
+    --bin-dir=${bin_dir} \
+    --lib-hadoop=${usr_lib_hadoop} \
+    --etc-flink=${etc_flink} \
+    --etc-hadoop=${etc_hadoop}
 popd
 
 # Generate parcel pkg
 PARCEL_VERSION=$PKG_VERSION-$STACK_VERSION-$BUILD_NUMBER
-tar -czvf $PARCELS_DIR/kafka_$PARCEL_VERSION.parcel  -C $PARCEL_INSTALL_PREFX .
+tar -czvf $PARCELS_DIR/flink_$PARCEL_VERSION.parcel  -C $PARCEL_INSTALL_PREFX .
 
 # Docker build image
 # Note: That docker needs to be run as a root user
 pushd "$PARCEL_INSTALL_PREFX"
 if [ -n "$DOCKER_CREDENTIALS" ]; then
-  docker build -t hetudb/kafka:$PARCEL_VERSION -f $PARCEL_SPACES_DIR/Dockerfile .
+  docker build -t hetudb/flink:$PARCEL_VERSION -f $PARCEL_SPACES_DIR/Dockerfile .
   echo ${DOCKER_CREDENTIALS} | docker login -u ${DOCKER_USER} --password-stdin
-  docker push hetudb/kafka:$PARCEL_VERSION
+  docker push hetudb/flink:$PARCEL_VERSION
 fi
 popd
 
 # Clean build generate temp dir.
-rm -rf $PARCEL_BUILD_ROOT/$PKG_NAME-$PKG_VERSION-src
+rm -rf $PARCEL_BUILD_ROOT/$PKG_NAME-$PKG_VERSION
 rm -rf $PARCEL_INSTALL_PREFX/* 
