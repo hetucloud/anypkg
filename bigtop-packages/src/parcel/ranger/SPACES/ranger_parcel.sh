@@ -120,12 +120,12 @@ PARCEL_INSTALL_PREFX="${ROOT_DIR}/INSTALL"
 
 # Build
 tar -zxvf $SPARCELS_DIR/${PKG_NAME}*-$PKG_VERSION.$STACK_VERSION-$BUILD_NUMBER.src.parcel -C $PARCEL_BUILD_ROOT  
-file_name=$PKG_NAME-$PKG_VERSION.tar.gz
+file_name=release-$PKG_NAME-$PKG_VERSION.tar.gz
 tar -zxvf $PARCEL_BUILD_ROOT/$file_name -C $PARCEL_BUILD_ROOT 
 
-pushd $PARCEL_BUILD_ROOT/$PKG_NAME-$PKG_VERSION
+pushd $PARCEL_BUILD_ROOT/ranger-release-$PKG_NAME-$PKG_VERSION
 ## Prep: patch
-#cp -r ../patch*.diff . 
+cp -r ../patch*.diff . 
 #BIGTOP_PATCH_COMMANDS
 
 ## Compile
@@ -134,10 +134,10 @@ popd
 
 # Install
 rm -rf "$PARCEL_INSTALL_PREFX/*"
-pushd $PARCEL_BUILD_ROOT/$PKG_NAME-$PKG_VERSION
+pushd $PARCEL_BUILD_ROOT/ranger-release-$PKG_NAME-$PKG_VERSION
 for comp in admin usersync kms tagsync hdfs-plugin yarn-plugin hive-plugin hbase-plugin knox-plugin storm-plugin kafka-plugin atlas-plugin sqoop-plugin solr-plugin kylin-plugin elasticsearch-plugin presto-plugin
 do
-	env RANGER_VERSION=${PKG_VERSION} /bin/bash ../ranger_install.sh \
+	env RANGER_VERSION=${PKG_VERSION} /bin/bash ../install_ranger.sh \
   		--prefix=$PARCEL_INSTALL_PREFX \
   		--build-dir=${ranger_dist} \
   		--component=${comp} \
@@ -163,5 +163,5 @@ fi
 popd
 
 # Clean build generate temp dir.
-rm -rf $PARCEL_BUILD_ROOT/$PKG_NAME-$PKG_VERSION
+rm -rf $PARCEL_BUILD_ROOT/ranger-release-$PKG_NAME-$PKG_VERSION
 rm -rf $PARCEL_INSTALL_PREFX/* 
