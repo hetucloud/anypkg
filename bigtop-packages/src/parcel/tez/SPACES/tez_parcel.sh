@@ -146,3 +146,15 @@ PARCEL_VERSION=$PKG_VERSION-$STACK_VERSION-$BUILD_NUMBER
 tar -czvf $PARCELS_DIR/tez_$PARCEL_VERSION.parcel  -C $PARCEL_INSTALL_PREFX .
 
 # Docker build image
+# Note: That docker needs to be run as a root user
+pushd "$PARCEL_INSTALL_PREFX"
+if [ -n "$DOCKER_CREDENTIALS" ]; then
+  docker build -t hetudb/tez:$PARCEL_VERSION -f $PARCEL_SPACES_DIR/Dockerfile .
+  echo ${DOCKER_CREDENTIALS} | docker login -u ${DOCKER_USER} --password-stdin
+  docker push hetudb/tez:$PARCEL_VERSION
+fi
+popd
+
+# Clean build generate temp dir.
+rm -rf $PARCEL_BUILD_ROOT/apache-$PKG_NAME-$PKG_VERSION-src 
+rm -rf $PARCEL_INSTALL_PREFX/* 
