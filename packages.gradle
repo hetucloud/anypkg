@@ -681,6 +681,34 @@ def genTasks = { target ->
     bomVersions.each { bomWriter << "$it\n"}
     bomWriter.close()
 
+    def specFileName = "${PKG_BUILD_DIR}/parcel/SPACES/${NAME}_parcel.sh"
+    def specTmpFileName = "${PKG_BUILD_DIR}/parcel/SPACES/tmp_${NAME}_parcel.sh"
+    def specFile = new File(specFileName)
+    def specWriter = new File(specTmpFileName).newWriter()
+    def patches = new File("${PKG_BUILD_DIR}/parcel/SOURCES").list({ d, f -> f ==~ /patch.*diff/}).sort()
+    specFile.eachLine { line ->
+      if (line.startsWith("#BIGTOP_PATCH_FILES")) {
+        def patchNum = 0
+        patches.each { p ->
+          specWriter << "Patch$patchNum: $p\n"
+          patchNum++
+        }
+      } else {
+        if (line.startsWith("#BIGTOP_PATCH_COMMANDS")) {
+          def patchNum = 0
+          patches.each { p ->
+            specWriter << "patch -p1 < $p\n"
+            patchNum++
+          }
+        } else {
+          specWriter << "$line\n"
+        }
+      }
+    }
+    specWriter.close()
+    specFile.delete()
+    new File(specTmpFileName).renameTo(specFileName)
+
     // Build a binary package file of source code
     def final sourceName = "$PKG_BUILD_DIR/parcel/SOURCES/"
     def final sparcelName = PKG_NAME + "_" + STACK_PACKAGE_VERSION + "-" + STACK_VERSION + ".src.parcel"

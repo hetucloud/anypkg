@@ -15,11 +15,6 @@
 
 FROM alpine:latest
 
-RUN apk --no-cache add openjdk11-jdk
+RUN apk --no-cache add python3
 
-# set java env
-ENV JAVA_HOME /usr/lib/jvm/default-jvm
-RUN ln -s /usr/lib/jvm/java-11-openjdk /usr/lib/jvm/default-jvm
-COPY etc /etc
 COPY opt /opt
-COPY var /var

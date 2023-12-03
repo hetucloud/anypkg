@@ -13,13 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM alpine:latest
+# Override JAVA_HOME detection for all bigtop packages
+# export JAVA_HOME
 
-RUN apk --no-cache add openjdk11-jdk
+# Provide a colon-delimited list of directories to search for native Java libraries (e.g. libjvm.so)
+# export JAVA_NATIVE_PATH
 
-# set java env
-ENV JAVA_HOME /usr/lib/jvm/default-jvm
-RUN ln -s /usr/lib/jvm/java-11-openjdk /usr/lib/jvm/default-jvm
-COPY etc /etc
-COPY opt /opt
-COPY var /var
+# Add common dependencies to the classpath (/var/lib/bigtop will already be included)
+# export BIGTOP_CLASSPATH

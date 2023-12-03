@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -13,13 +14,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM alpine:latest
+# Add files to BIGTOP_CLASSPATH and they will be prepended to the contents of /var/lib/bigtop
+BIGTOP_DEFAULTS_DIR=${BIGTOP_DEFAULTS_DIR-/etc/default}
+[ -n "${BIGTOP_DEFAULTS_DIR}" -a -r ${BIGTOP_DEFAULTS_DIR}/bigtop-utils ] && . ${BIGTOP_DEFAULTS_DIR}/bigtop-utils
 
-RUN apk --no-cache add openjdk11-jdk
+# Overriding this is not recommended because it has had to be hard-coded in
+# properties files for components that use bigtop-tomcat
+BIGTOP_CLASSPATH_DIR=/var/lib/bigtop
 
-# set java env
-ENV JAVA_HOME /usr/lib/jvm/default-jvm
-RUN ln -s /usr/lib/jvm/java-11-openjdk /usr/lib/jvm/default-jvm
-COPY etc /etc
-COPY opt /opt
-COPY var /var
+# Create a string suitable for inclusion in CLASSPATH
+# for components that can use it in their environment
+for file in $BIGTOP_CLASSPATH_DIR/*.jar; do
+    if [ -z "$BIGTOP_CLASSPATH" ]; then
+        BIGTOP_CLASSPATH="$file"
+    else
+        BIGTOP_CLASSPATH="$BIGTOP_CLASSPATH:$file"
+    fi
+done
+export BIGTOP_CLASSPATH

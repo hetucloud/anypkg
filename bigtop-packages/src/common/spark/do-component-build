@@ -28,7 +28,6 @@ BUILD_OPTS="-Divy.home=${HOME}/.ivy2 -Dsbt.ivy.home=${HOME}/.ivy2 -Duser.home=${
             -Psparkr -Pkubernetes \
             -Pscala-${SCALA_VERSION%.*} \
             -Dguava.version=27.0-jre \
-            --name anyscale-spark \
             $SPARK_BUILD_OPTS"
 
 # BIGTOP-3762
@@ -39,7 +38,7 @@ echo "Building Spark OPTS: ${BUILD_OPTS}"
 ./dev/make-distribution.sh --name anyscale-spark --tgz --pip \
 -Psparkr -P$HADOOP_VERSION -Phive -Phive-thriftserver -Pyarn -DskipTests
 # if TARGET == PARCEL, Optional: PARCEL|RPM|DEB
-cp spark-${SPARK_VERSION}-bin-anyscale-spark.tgz ../../../../../output/binary/
+cp spark-${SPARK_VERSION}-bin-anyscale-spark.tgz ../../../../../output/spark
 
 SPARK_SKIP_TESTS=$([ "$SPARK_RUN_TESTS" = "true" ] && echo false || echo true)
 

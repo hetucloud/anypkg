@@ -62,8 +62,8 @@ if [ -z "$BUNDLE_ISAL" ] ; then
   [ -f /usr/local/lib/libisal.so ] && BUNDLE_ISAL="-Dbundle.isal=true -Disal.lib=/usr/local/lib/"
   [ -f /usr/lib/${HOSTTYPE}-linux-gnu/libisal.so ] && BUNDLE_ISAL="-Dbundle.isal=true -Disal.lib=/usr/lib/${HOSTTYPE}-linux-gnu"
 fi
-mkdir build
-mkdir build/src
+mkdir -p build
+mkdir -p build/src
  
 # Build artifacts
 MAVEN_OPTS="-Dzookeeper.version=$ZOOKEEPER_VERSION "

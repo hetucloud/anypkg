@@ -80,30 +80,36 @@ for var in ROOT_DIR INSTALL_PATH; do
 done
 
 # Parameter define
-PKG_NAME="zookeeper"
-etc_default="${INSTALL_PATH}/etc/default"
+PKG_NAME="hive"
 
-usr_lib_zookeeper="${INSTALL_PATH}/${PKG_NAME}"
-var_lib_zookeeper="${INSTALL_PATH}/${PKG_NAME}"
-etc_zookeeper_conf_dist="${INSTALL_PATH}/etc/${PKG_NAME}/conf.dist"
+hadoop_username=hadoop
 
-bin_dir="${usr_lib_zookeeper}/bin"
-man_dir="${usr_lib_zookeeper}/man"
-doc_dir="${usr_lib_zookeeper}/doc"
-include_dir="${INSTALL_PATH}/include"
-lib_dir="${INSTALL_PATH}/lib"
+etc_default=${INSTALL_PATH}/etc/default
+
+usr_lib_hive=${INSTALL_PATH}/${PKG_NAME}
+usr_lib_hcatalog=${INSTALL_PATH}/${PKG_NAME}-hcatalog
+var_lib_hive=${INSTALL_PATH}/${PKG_NAME}
+var_lib_hcatalog=${INSTALL_PATH}/${PKG_NAME}-hcatalog
+etc_hive=${INSTALL_PATH}/etc/${PKG_NAME}
+
+usr_lib_zookeeper=${INSTALL_PATH}/zookeeper
+usr_lib_hbase=${INSTALL_PATH}/hbase
+
+bin_dir="${usr_lib_hive}/bin"
+man_dir="${usr_lib_hive}/man"
+doc_dir="${usr_lib_hive}/doc"
 
 # No prefix directory
-np_var_log_zookeeper=${INSTALL_PATH}/var/log/${PKG_NAME}
-np_var_run_zookeeper=${INSTALL_PATH}/var/run/${PKG_NAME}
-np_etc_zookeeper=${INSTALL_PATH}/etc/${PKG_NAME}
+np_var_log_hive=/var/log/${PKG_NAME}
+np_var_run_hive=/var/run/${PKG_NAME}
+np_var_log_hcatalog=/var/log/${PKG_NAME}-hcatalog
+np_etc_hive=/etc/${PKG_NAME}
 
-doc_zookeeper=${doc_dir}/${PKG_NAME}-${PKG_VERSION}
+hive_dist=build/dist
 
-svc_zookeeper=${PKG_NAME}-server
-svc_zookeeper_rest=${PKG_NAME}-rest
+doc_hive=${doc_dir}/${PKG_NAME}-${PKG_VERSION}
 
-# For examples: ROOT_DIR = /ws/bigtop/build/zookeeper/parcel
+# For examples: ROOT_DIR = /ws/anypkg/build/hadoop/parcel
 PARCELS_DIR="${ROOT_DIR}/PARCELS"
 SPARCELS_DIR="${ROOT_DIR}/SPARCELS"
 PARCEL_SOURCE_DIR="${ROOT_DIR}/SOURCES"
@@ -113,53 +119,53 @@ PARCEL_INSTALL_PREFX="${ROOT_DIR}/INSTALL"
 
 # Build
 tar -zxvf $SPARCELS_DIR/${PKG_NAME}*-$PKG_VERSION.$STACK_VERSION-$BUILD_NUMBER.src.parcel -C $PARCEL_BUILD_ROOT  
-file_name=apache-$PKG_NAME-$PKG_VERSION.tar.gz
+file_name=apache-$PKG_NAME-$PKG_VERSION-src.tar.gz
 tar -zxvf $PARCEL_BUILD_ROOT/$file_name -C $PARCEL_BUILD_ROOT 
 
-pushd $PARCEL_BUILD_ROOT/apache-$PKG_NAME-$PKG_VERSION 
+pushd $PARCEL_BUILD_ROOT/apache-$PKG_NAME-$PKG_VERSION-src 
+## Prep: patch
+cp -r ../patch*.diff . 
+#BIGTOP_PATCH_COMMANDS
+
+## Compile
 bash ../do-component-build
 popd
 
 # Install
-rm -rf "$PARCEL_INSTALL_PREFX/*"
-pushd $PARCEL_BUILD_ROOT/apache-$PKG_NAME-$PKG_VERSION 
-cp $PARCEL_SOURCE_DIR/zookeeper.1 $PARCEL_SOURCE_DIR/zoo.cfg $PARCEL_SOURCE_DIR/zookeeper.default .
-bash ../install_zookeeper.sh \
-          --build-dir=build \
-          --prefix=$PARCEL_INSTALL_PREFX \
-          --doc-dir=${doc_zookeeper} \
-          --lib-dir=${usr_lib_zookeeper} \
-          --bin-dir=${bin_dir} \
-          --man-dir=${man_dir} \
-          --conf-dist-dir=${etc_zookeeper_conf_dist} \
-          --etc-default=${etc_default} \
-          --system-include-dir=${include_dir} \
-          --system-lib-dir=${lib_dir}
-
-install -d -m 0755 $PARCEL_INSTALL_PREFX/${usr_lib_zookeeper}/etc/rc.d/init.d/
-init_file=$PARCEL_INSTALL_PREFX/${usr_lib_zookeeper}/etc/rc.d/init.d/${svc_zookeeper}
-cp ../zookeeper-server.sh $init_file
-chmod 755 $init_file
-
-# Install Zookeeper REST server init script
-init_file=$PARCEL_INSTALL_PREFX/${usr_lib_zookeeper}/etc/rc.d/init.d/zookeeper-rest
-bash ../init.d.tmpl ../zookeeper-rest.svc rpm $init_file
+rm -rf $PARCEL_INSTALL_PREFX/*
+pushd $PARCEL_BUILD_ROOT/apache-$PKG_NAME-$PKG_VERSION-src 
+cp $PARCEL_SOURCE_DIR/hive.1 .
+cp $PARCEL_SOURCE_DIR/hive-hcatalog.1 .
+cp $PARCEL_SOURCE_DIR/hive-site.xml .
+bash ../install_hive.sh \
+  --build-dir=${hive_dist} \
+  --prefix=$PARCEL_INSTALL_PREFX \
+  --doc-dir=${doc_hive} \
+  --bin-dir=${bin_dir} \
+  --man-dir=${man_dir} \
+  --etc-default=${etc_default} \
+  --hive-dir=${usr_lib_hive} \
+  --var-hive-dir=${var_lib_hive} \
+  --hcatalog-dir=${usr_lib_hcatalog} \
+  --var-hcatalog-dir=${var_lib_hcatalog} \
+  --etc-hive=${etc_hive} \
+  --hive-version=${PKG_VERSION}
 popd
 
 # Generate parcel pkg
 PARCEL_VERSION=$PKG_VERSION-$STACK_VERSION-$BUILD_NUMBER
-tar -czvf $PARCELS_DIR/zookeeper_$PARCEL_VERSION.parcel  -C $PARCEL_INSTALL_PREFX .
+tar -czvf $PARCELS_DIR/hive_$PARCEL_VERSION.parcel  -C $PARCEL_INSTALL_PREFX .
 
 # Docker build image
 # Note: That docker needs to be run as a root user
 pushd "$PARCEL_INSTALL_PREFX"
 if [ -n "$DOCKER_CREDENTIALS" ]; then
-  docker build -t hetudb/zookeeper:$PARCEL_VERSION -f $PARCEL_SPACES_DIR/Dockerfile .
+  docker build -t hetudb/hive:$PARCEL_VERSION -f $PARCEL_SPACES_DIR/Dockerfile .
   echo ${DOCKER_CREDENTIALS} | docker login -u ${DOCKER_USER} --password-stdin
-  docker push hetudb/zookeeper:$PARCEL_VERSION
+  docker push hetudb/hive:$PARCEL_VERSION
 fi
 popd
 
 # Clean build generate temp dir.
-rm -rf $PARCEL_BUILD_ROOT/*
+rm -rf $PARCEL_BUILD_ROOT/apache-$PKG_NAME-$PKG_VERSION-src 
 rm -rf $PARCEL_INSTALL_PREFX/* 
