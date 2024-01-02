@@ -25,75 +25,138 @@ from params import stack_root, stack_version
 
 # The global prefix and current directory
 root = stack_root
-bigtop_version = stack_version
+anyscale_version = stack_version
 current = root + "/current"
 lib_root = "/opt/anyscale"
-bin_directory = "/usr/bin"
 version_regex = re.compile('[-.]')
 
 spark_wrapper_scripts = ["run-example", "pyspark", "spark-class", "sparkR", "spark-shell", "spark-sql", "spark-submit"]
 
 # The packages and where in the release they should point to
 leaves = {
+           "accumulo-client": "accumulo",
+           "accumulo-gc": "accumulo",
+           "accumulo-master": "accumulo",
+           "accumulo-monitor": "accumulo",
+           "accumulo-tablet": "accumulo",
+           "accumulo-tracer": "accumulo",
+           "atlas-server": "atlas",
+           "atlas-client": "atlas",
+           "beacon-server": "beacon",
+           "beacon-client": "beacon",
+           "falcon-client": "falcon",
+           "falcon-server": "falcon",
+           "flume-server": "flume",
            "hadoop-client": "hadoop",
            "hadoop-hdfs-client": "hadoop-hdfs",
+           "hadoop-mapreduce-client": "hadoop-mapreduce",
+           "hadoop-yarn-client": "hadoop-yarn",
            "hadoop-hdfs-datanode": "hadoop-hdfs",
            "hadoop-hdfs-journalnode": "hadoop-hdfs",
+           "hadoop-hdfs-nfs3": "hadoop-hdfs",
            "hadoop-hdfs-namenode": "hadoop-hdfs",
+           "hadoop-hdfs-portmap": "hadoop-hdfs",
            "hadoop-hdfs-secondarynamenode": "hadoop-hdfs",
            "hadoop-hdfs-zkfc": "hadoop-hdfs",
-           "hadoop-yarn-client": "hadoop-yarn",
+           "hadoop-httpfs": "hadoop-httpfs",
+           "hadoop-mapreduce-historyserver": "hadoop-mapreduce",
            "hadoop-yarn-resourcemanager": "hadoop-yarn",
            "hadoop-yarn-nodemanager": "hadoop-yarn",
-           "hadoop-mapreduce-client": "hadoop-mapreduce",
-           "hadoop-mapreduce-historyserver": "hadoop-mapreduce",
+           "hadoop-yarn-timelineserver": "hadoop-yarn",
+           "hadoop-yarn-timelinereader": "hadoop-yarn",
+           "hadoop-yarn-registrydns": "hadoop-yarn",
            "hbase-client": "hbase",
            "hbase-master": "hbase",
            "hbase-regionserver": "hbase",
-           "tez-client": "tez",
            "hive-client": "hive",
            "hive-metastore": "hive",
            "hive-server2": "hive",
            "hive-webhcat": "hive-hcatalog",
+           "hive-server2-hive": "hive",
+           "hive-server2-hive2": "hive2",
            "kafka-broker": "kafka",
+           "hive_warehouse_connector": "hive_warehouse_connector",
+           "knox-server": "knox",
+           "livy-client": "livy",
+           "livy-server": "livy",
+           "livy2-client": "livy2",
+           "livy2-server": "livy2",
+           "mahout-client": "mahout",
            "oozie-client": "oozie",
            "oozie-server": "oozie",
            "phoenix-client": "phoenix",
            "phoenix-server": "phoenix",
+           "pig-client": "pig",
+           "slider-client": "slider",
+           "sqoop-client": "sqoop",
+           "sqoop-server": "sqoop",
+           "storm-client": "storm",
+           "storm-nimbus": "storm",
+           "storm-supervisor": "storm",
+           "storm-slider-client": "storm-slider-client",
+           "tez-client": "tez",
            "zeppelin-server": "zeppelin",
            "zookeeper-client": "zookeeper",
            "zookeeper-server": "zookeeper",
-           "solr-server" : "solr",
-           "flink-client" : "flink",
-           "flink-historyserver" : "flink",
+           "ranger-admin" : "ranger-admin",
+           "ranger-kms" : "ranger-kms",
+           "ranger-usersync" : "ranger-usersync",
+           "ranger-tagsync" : "ranger-tagsync",
+           "shc" : "shc",
+           "spark_llap" : "spark_llap",
            "spark-client" : "spark",
            "spark-thriftserver" : "spark",
            "spark-historyserver" : "spark",
-           "ranger-admin" : "ranger-admin",
-           "ranger-usersync" : "ranger-usersync",
-           "ranger-tagsync" : "ranger-tagsync"
-}
+           "druid-overlord" : "druid",
+           "druid-middlemanager" : "druid",
+           "druid-coordinator" : "druid",
+           "druid-broker" : "druid",
+           "druid-historical" : "druid",
+           "druid-router" : "druid",
+           "druid-superset" : "superset",
+           "superset" : "superset",
+           "spark-atlas-connector":"spark-atlas-connector",
+           "spark-schema-registry":"spark-schema-registry",
+           "beacon" : "beacon",
+	         "flink" : "flink"
+        }
 
 # Define the aliases and the list of leaves they correspond to
 aliases = {
+  "accumulo-server": ["accumulo-gc",
+                      "accumulo-master",
+                      "accumulo-monitor",
+                      "accumulo-tablet",
+                      "accumulo-tracer"],
   "all": leaves.keys(),
-  "client" : ["hadoop-client",
+  "client" : ["accumulo-client",
+              "atlas-client",
+              "beacon-client",
+              "falcon-client",
+              "hadoop-client",
               "hbase-client",
-              "tez-client",
-              "hive-client",
+              "mahout-client",
               "oozie-client",
               "phoenix-client",
+              "slider-client",
+              "sqoop-client",
+              "storm-client",
               "zookeeper-client",
-              "flink-client",
-              "spark-client"],
+              "spark-client",
+              "shc",
+              "spark-schema-registry",
+              "spark_llap"],
   "hadoop-hdfs-server": ["hadoop-hdfs-datanode",
                          "hadoop-hdfs-journalnode",
+                         "hadoop-hdfs-nfs3",
                          "hadoop-hdfs-namenode",
-                         "hadoop-hdfs-zkfc",
                          "hadoop-hdfs-secondarynamenode"],
   "hadoop-mapreduce-server": ["hadoop-mapreduce-historyserver"],
   "hadoop-yarn-server": ["hadoop-yarn-resourcemanager",
-                         "hadoop-yarn-nodemanager"],
+                         "hadoop-yarn-nodemanager",
+                         "hadoop-yarn-timelineserver",
+                         "hadoop-yarn-timelinereader",
+                         "hadoop-yarn-registrydns"],
   "hive-server": ["hive-metastore",
                   "hive-server2",
                   "hive-webhcat"],
@@ -101,42 +164,83 @@ aliases = {
 
 locked_contexts = {
   "hadoop-client": [("hadoop-hdfs-client", "hadoop-hdfs"),
+                    ("hadoop-httpfs", "hadoop-httpfs"),
                     ("hadoop-yarn-client", "hadoop-yarn"),
                     ("hadoop-mapreduce-client", "hadoop-mapreduce"),
                     ("hive-client", "hive"),
+                    ("pig-client", "pig"),
                     ("tez-client", "tez"),
+                    ("livy-client", "livy"),
+                    ("livy2-client", "livy2"),
+                    ("shc", "shc"),
+                    ("spark-schema-registry", "spark-schema-registry"),
+                    ("spark_llap", "spark_llap"),
                     ("spark-client", "spark")]
 }
 
 command_symlinks = {
-  "hadoop" : "hadoop-client/../../bin/hadoop",
-  "hdfs" : "hadoop-hdfs-client/../../bin/hdfs",
-  "yarn" : "hadoop-yarn-client/../../bin/yarn",
-  "mapred" : "hadoop-mapreduce-client/../../bin/mapred",
-  "hbase" : "hbase-client/../../bin/hbase",
-  "beeline" : "hive-client/../../bin/beeline",
-  "hive" : "hive-client/../../bin/hive",
-  "hiveserver2" : "hive-server2/../../bin/hiveserver2",
-  "hcat" : "hive-webhcat/../../bin/hcat",
-  "zookeeper-client" : "zookeeper-client/../../bin/zookeeper-client",
-  "zookeeper-server" : "zookeeper-server/../../bin/zookeeper-server",
-  "zookeeper-server-cleanup" : "zookeeper-server/../../bin/zookeeper-server-cleanup",
-  "zookeeper-server-initialize" : "zookeeper-server/../../bin/zookeeper-server-initialize",
-  "kafka-console-consumer.sh" : "kafka-broker/../../bin/kafka-console-consumer.sh",
-  "kafka-console-producer.sh" : "kafka-broker/../../bin/kafka-console-producer.sh",
-  "kafka-run-class.sh" : "kafka-broker/../../bin/kafka-run-class.sh",
-  "kafka-topics.sh" : "kafka-broker/../../bin/kafka-topics.sh",
-  "solrctl" : "solr-server/../../bin/solrctl",
-  "flink" : "flink-client/../../bin/flink",
-  "find-spark-home" : "spark-client/../../bin/find-spark-home",
-  "spark-example" : "spark-client/../../bin/spark-example",
-  "spark-class" : "spark-client/../../bin/spark-class",
-  "spark-shell" : "spark-client/../../bin/spark-shell",
-  "spark-sql" : "spark-client/../../bin/spark-sql",
-  "spark-submit" : "spark-client/../../bin/spark-submit",
-  "pyspark" : "spark-client/../../bin/pyspark"
+  "accumulo" : "accumulo-client/bin/accumulo",
+  "atlas-start" : "atlas-server/bin/metadata-start.sh",
+  "atlas-stop" : "atlas-server/bin/metadata-stop.sh",
+  "beacon" : "beacon-client/bin/beacon.py",
+  "beeline" : "hive-client/bin/beeline",
+  "falcon" : "falcon-client/bin/falcon",
+  "flume-ng"  : "flume-server/bin/flume-ng",
+  "hadoop" : "hadoop-client/bin/hadoop",
+  "hbase" : "hbase-client/bin/hbase",
+  "phoenix-sqlline" : "phoenix-client/bin/sqlline.py",
+  "phoenix-sqlline-thin" : "phoenix-client/bin/sqlline-thin.py",
+  "phoenix-psql" : "phoenix-client/bin/psql.py",
+  "phoenix-queryserver" : "phoenix-server/bin/queryserver.py",
+  "hcat" : "hive-client/../hive-hcatalog/bin/hcat",
+  "hdfs" : "hadoop-hdfs-client/bin/hdfs",
+  "hive" : "hive-client/bin/hive",
+  "hiveserver2" : "hive-server2/bin/hiveserver2",
+  "mahout" : "mahout-client/bin/mahout",
+  "mapred" : "hadoop-mapreduce-client/bin/mapred",
+  "oozie" : "oozie-client/bin/oozie",
+  "oozied.sh" : "oozie-server/bin/oozied.sh",
+  "pig" : "pig-client/bin/pig",
+  "slider": "slider-client/bin/slider",
+  "sqoop" : "sqoop-client/bin/sqoop",
+  "sqoop-codegen" : "sqoop-client/bin/sqoop-codegen",
+  "sqoop-create-hive-table" : "sqoop-client/bin/sqoop-create-hive-table",
+  "sqoop-eval" : "sqoop-client/bin/sqoop-eval",
+  "sqoop-export" : "sqoop-client/bin/sqoop-export",
+  "sqoop-help" : "sqoop-client/bin/sqoop-help",
+  "sqoop-import" : "sqoop-client/bin/sqoop-import",
+  "sqoop-import-all-tables" : "sqoop-client/bin/sqoop-import-all-tables",
+  "sqoop-job" : "sqoop-client/bin/sqoop-job",
+  "sqoop-list-databases" : "sqoop-client/bin/sqoop-list-databases",
+  "sqoop-list-tables" : "sqoop-client/bin/sqoop-list-tables",
+  "sqoop-merge" : "sqoop-client/bin/sqoop-merge",
+  "sqoop-metastore" : "sqoop-server/bin/sqoop-metastore",
+  "sqoop-version" : "sqoop-client/bin/sqoop-version",
+  "storm" : "storm-client/bin/storm",
+  "worker-lanucher": "storm-client/bin/worker-launcher",
+  "storm-slider": "storm-slider-client/bin/storm-slider",
+  "kafka" : "kafka-broker/bin/kafka",
+  "yarn" : "hadoop-yarn-client/bin/yarn",
+  "zookeeper-client" : "zookeeper-client/bin/zookeeper-client",
+  "zookeeper-server" : "zookeeper-server/bin/zookeeper-server",
+  "zookeeper-server-cleanup" : "zookeeper-server/bin/zookeeper-server-cleanup",
+  "zookeeper-server-initialize" : "zookeeper-server/bin/zookeeper-server-initialize",
+  "ranger-admin-start" : "ranger-admin/ews/ranger-admin-start",
+  "ranger-admin-stop" : "ranger-admin/ews/ranger-admin-stop",
+  "ranger-kms" : "ranger-kms/ranger-kms",
+  "ranger-usersync-start" : "ranger-usersync/ranger-usersync-start",
+  "ranger-usersync-stop" : "ranger-usersync/ranger-usersync-stop",
+  "run-example" : "spark-client/bin/run-example",
+  "sparkR" : "spark-client/bin/sparkR",
+  "spark-class" : "spark-client/bin/spark-class",
+  "spark-shell" : "spark-client/bin/spark-shell",
+  "spark-sql" : "spark-client/bin/spark-sql",
+  "spark-submit" : "spark-client/bin/spark-submit",
+  "pyspark" : "spark-client/bin/pyspark",
+  "flink" : "flink/bin/flink"
 }
 
+bin_directory = "/usr/bin"
 
 # Given a package or alias name, get the full list of packages
 def getPackages( name ):
@@ -147,8 +251,8 @@ def getPackages( name ):
   if name in leaves:
     return [ name ]
 
-  print("ERROR: Invalid package - " + name)
-  print('')
+  print "ERROR: Invalid package - " + name
+  print
   printPackages()
   sys.exit(1)
 
@@ -161,31 +265,31 @@ def listPackages( packages ):
   for pkg in packages:
     linkname = current + "/" + pkg
     if os.path.isdir(linkname):
-      print(pkg + " - " +
-             os.path.basename(os.path.dirname(os.path.dirname(os.path.dirname(os.readlink(linkname))))))
+      print (pkg + " - " +
+             os.path.basename(os.path.dirname(os.readlink(linkname))))
     else:
-      print(pkg + " - None")
+      print pkg + " - None"
 
 # Print the avaialable package names
 def printPackages():
   packages = leaves.keys()
   packages.sort()
-  print("Packages:")
+  print "Packages:"
   for pkg in packages:
-     print(" " + pkg)
+     print " ", pkg
   groups = aliases.keys()
   groups.sort()
-  print("Aliases:")
+  print "Aliases:"
   for pkg in groups:
-    print(" " + pkg)
+    print " ", pkg
 
 #Print whether given package is supported or not
 def isSupportedPacakge(package):
     packages = leaves.keys()
     if package in packages:
-      print("%s" % package)
+      print "%s" % package
     else:
-      print(None)
+      print None
       sys.exit(1)
 
 # Print the installed packages
@@ -196,28 +300,27 @@ def printVersions():
       try:
         result[tuple(map(int, version_regex.split(f)))] = f
       except ValueError:
-        print("ERROR: Unexpected file/directory found in %s: %s" % (root, f))
+        print ("ERROR: Unexpected file/directory found in %s: %s" % (root, f))
         sys.exit(1)
 
   keys = result.keys()
   keys.sort()
   for k in keys:
-     print(result[k])
+     print result[k]
 
 # Set the list of packages to the given version
 def setPackages(packages, version, rpm_mode):
   if packages == None or version == None:
-    print("ERROR: 'set' command must give both package and version")
-    print('')
+    print "ERROR: 'set' command must give both package and version"
+    print
     printHelp()
     sys.exit(1)
 
-  # target = root + "/" + version + lib_root
   target = root + "/" + version
   if not os.path.isdir(target):
-    print("ERROR: Invalid version " + version)
-    print('')
-    print("Valid choices:")
+    print "ERROR: Invalid version " + version
+    print
+    print "Valid choices:"
     printVersions()
     sys.exit(1)
 
@@ -263,22 +366,22 @@ def createCommandSymlinks(packages, rpm_mode):
       elif os.path.islink(filename):
         old_value = os.readlink(filename)
         if old_value != target:
-          print("WARNING: Replacing link", filename, "from", old_value)
+          print "WARNING: Replacing link", filename, "from", old_value
           os.remove(filename)
           os.symlink(target, filename)
       else:
         if os.path.basename(filename) not in spark_wrapper_scripts:
-          print("ERROR:", filename, "is a regular file instead of symlink.")
-          print('')
-          print("Please ensure that the BIGTOP 2.1 (and earlier) packages are")
-          print("removed.")
+          print "ERROR:", filename, "is a regular file instead of symlink."
+          print
+          print "Please ensure that the ANYSCALE 2.1 (and earlier) packages are"
+          print "removed."
 
 # Do a sanity check on the tables
 def sanityCheckTables():
   for alias in aliases:
     for child in aliases[alias]:
       if not child in leaves:
-        print("ERROR: Alias", alias, "has bad child", child)
+        print "ERROR: Alias", alias, "has bad child", child
         sys.exit(1)
   locked = set()
   for parent in locked_contexts:
@@ -287,20 +390,20 @@ def sanityCheckTables():
   for symlink in command_symlinks:
     parts = command_symlinks[symlink].split('/')
     if not parts[0] in leaves and not parts[0] in locked:
-      print("ERROR: command symlink", symlink, "points to an invalid package",\
-            parts[0])
+      print "ERROR: command symlink", symlink, "points to an invalid package",\
+            parts[0]
       sys.exit(1)
 
 def printHelp():
-  print("""
-usage: distro-select [-h] [<command>] [<package>] [<version>]
+  print """
+usage: anyscale-select [-h] [<command>] [<package>] [<version>]
 
-Set the selected version of BIGTOP.
+Set the selected version of ANYSCALE.
 
 positional arguments:
   <command>   One of set, status, versions, or packages
   <package>   the package name to set
-  <version>   the BIGTOP version to set
+  <version>   the ANYSCALE version to set
 
 optional arguments:
   -h, --help  show this help message and exit
@@ -311,13 +414,13 @@ Commands:
   status   : show the version of the package
   versions : show the currently installed versions
   packages : show the individual package names
-  supports : Check distro-select supports a specific package
-""")
+  supports : Check anyscale-select supports a specific package
+"""
 
 def checkCommandParameters(cmd, realLen, rightLen):
   if realLen != rightLen:
-    print("ERROR:", cmd, "command takes", rightLen - 1,\
-          "parameters, instead of", realLen - 1)
+    print "ERROR:", cmd, "command takes", rightLen - 1,\
+          "parameters, instead of", realLen - 1
     printHelp()
     sys.exit(1)
 
@@ -331,7 +434,7 @@ parser = optparse.OptionParser(add_help_option=False)
 parser.add_option("-h", "--help", action="store_true", dest="help",
                   help="print help")
 parser.add_option("-v", "--version", action="store_true", dest="version",
-                  help="print bigtop version")
+                  help="print anyscale version")
 parser.add_option("-r", "--rpm-mode", action="store_true", dest="rpm_mode", default=False,
                   help="if true checks if there is symlink exists and creates the symlink if it doesn't")
 (options, args) = parser.parse_args()
@@ -339,7 +442,7 @@ parser.add_option("-r", "--rpm-mode", action="store_true", dest="rpm_mode", defa
 if options.help:
   printHelp()
 elif options.version:
-  print(bigtop_version)
+  print anyscale_version
 else:
   if len(args) == 0 or args[0] == 'status':
     if len(args) > 1:
@@ -361,6 +464,6 @@ else:
     checkCommandParameters('support', len(args), 2)
     isSupportedPacakge(args[1])
   else:
-    print("ERROR: Unknown command -", args[0])
+    print "ERROR: Unknown command -", args[0]
     printHelp()
     sys.exit(1)

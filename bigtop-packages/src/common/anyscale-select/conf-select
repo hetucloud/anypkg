@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 #
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
@@ -22,25 +22,25 @@ import os
 import re
 import sys
 import errno
-from params import stack_root
 
 # The global prefix and current directory
-root = stack_root
+root = "/opt/anyscale"
 current = root + "/current"
-vconfroot = 'etc'
-lib_root = ""
-vconf_name = "conf.dist"
-packages = ("hadoop", "hbase", "hive", "hive-hcatalog",
-            "kafka", "oozie", "spark", "tez",
-            "zookeeper", "zeppelin", "flink", "solr", "ranger-admin", "ranger-usersync", "ranger-tagsync")
-''' conf link
-/opt/anyscale/3.3.0.1-1/${pname}/conf -> /etc/${pname}/conf -> /etc/alternatives/${pname}-conf -> /opt/anyscale/3.3.0.1-1/etc/${pname}/conf.dist.0
-'''
-
+vconfroot='/etc'
+packages = ( "accumulo", "atlas", "flume", "falcon", "hadoop",
+             "hbase", "hive", "hive-hcatalog",
+             "kafka", "knox", "mahout", "oozie",
+             "pig", "ranger-admin",
+             "ranger-kms", "ranger-usersync", "ranger-tagsync",
+             "slider", "spark", "sqoop", "storm",
+             "storm-slider-client",
+             "tez", "livy2", "zookeeper", "zeppelin",
+             "hive2", "tez_hive2", "druid", "superset",
+             "hive_warehouse_connector", "spark_schema_registry", "flink")
 
 def printHelp():
-    print("""
-usage: conf-select [-h] [<command>] --package --stack-version --conf-version
+    print """
+usage: conf-select [-h] [<command>] package --stack-version --conf-version
 arguments:
   <command>          One of create-conf-dir, set-conf-dir
   <--package>        package name to set
@@ -53,100 +53,73 @@ Commands:
   create-conf-dir   : create the specified conf directory
   dry-run-set       : dry run for set conf
   dry-run-create    : dry run for create conf
-""")
-
+"""
 
 def chkPkg(sver, pname):
+    '''checks package name against the package tuple,
+    check if the package directory exists and returns True
     '''
-    checks package name against the package tuple, check if the package directory exists and returns True
-    e.g. /opt/anyscale/3.3.0.1/zookeeper
-    '''
-    pkgdir = os.path.join(root, sver, lib_root, pname)
+    pkgdir = os.path.join(root,sver,pname)
     if not os.path.isdir(pkgdir) or pname not in packages:
-        print(pname + " not installed or incorrect package name")
+        print(pname +" not installed or incorrect package name")
         sys.exit(1)
     return True
 
 
 def chksVer(sver):
-    '''
-    returns True if the stack version number exists
-    e.g. /opt/anyscale/3.3.0.1-1
-    '''
-    print(os.path.join(root, sver, lib_root))
-    if not os.path.isdir(os.path.join(root, sver, lib_root)):
-        print(sver + " Incorrect stack version")
+    '''returns True if the stack version number
+    exists'''
+    if not os.path.isdir(os.path.join(root,sver)):
+        print (sver +" Incorrect stack version")
         sys.exit(1)
     return True
 
 
 def chkPath(pname, sver, cver, method):
-    '''
-    e.g. /opt/anyscale/3.3.0.1/etc/zookeeper/conf.dist.0
-    '''
-    confpath = os.path.join(root, sver, vconfroot, pname, vconf_name)
-    if cver:
-        confpath = os.path.join(root, sver, vconfroot, pname, vconf_name + '.' + cver)
+    confpath = os.path.join(vconfroot,pname,sver,cver)
     if method == "create" and os.path.exists(confpath):
-        print(confpath+" exist already")
+        print (confpath+" exist already")
         sys.exit(1)
     if method == "set" and not os.path.exists(confpath):
-        print(confpath+" does not exist")
+        print (confpath+" does not exist")
         sys.exit(1)
     return True
 
 
 def check(sver, pname, cver, method):
-    '''
-    Aggregates chksVer, chkPkg and checks if path exits.
-    Returns True if all the conditions are met
-    '''
+    '''Aggregates chksVer, chkPkg and checks if path exits.
+    Returns True if all the conditions are met'''
     chksVer(sver)
     chkPkg(sver, pname)
     chkPath(pname, sver, cver, method)
 
 
 def drcrtConfDir(pname, sver, cver):
-    '''
-    # Not really executing
-    # e.g. /opt/anyscale/3.3.0.1/etc/zookeeper/conf.dist.0
-    '''
     chksVer(sver)
     chkPkg(sver, pname)
-    for confmapkey, confmapval in confmap.items():
-        path = os.path.join(root, sver, vconfroot, confmapkey, vconf_name)
-        if cver:
-            path = os.path.join(root, sver, vconfroot, confmapkey, vconf_name+'.'+cver)
+    for confmapkey,confmapval in confmap.items():
+        path = os.path.join(vconfroot,confmapkey,sver,cver)
         print(path)
 
 
 def crtConfDir(pname, sver, cver):
-    '''
-    e.g. /opt/anyscale/3.3.0.1/etc/zookeeper/conf.dist.0
-    '''
-    path = os.path.join(root, sver, vconfroot, pname, vconf_name)
+    path = os.path.join(vconfroot,pname,sver,cver)
     check(sver, pname, cver, "create")
-    for confmapkey, confmapval in confmap.items():
-        path = os.path.join(root, sver, vconfroot, confmapkey, vconf_name)
-        if cver:
-            path = os.path.join(root, sver, vconfroot, confmapkey, vconf_name+'.'+cver)
+    for confmapkey,confmapval in confmap.items():
+        path = os.path.join(vconfroot,confmapkey,sver,cver)
         try:
             os.makedirs(path)
             print(path)
         except OSError as exc:
             if exc.errno == errno.EACCES:
-                print("Permission denied")
+                print ("Permission denied")
 
 
 def drsetConfDir(pname, sver):
-    '''
-    Not really executing
-    '''
     chksVer(sver)
     chkPkg(sver, pname)
-    for confmapkey, confmapval in confmap.items():
-        # e.g. /opt/anyscale/3.3.0.1/hive/conf
-        confdir = os.path.join(root, sver, lib_root, pname, confmapval)
+    for confmapkey,confmapval in confmap.items():
+        confdir = os.path.join(root,sver,pname,confmapval)
         if os.path.exists(confdir) and os.path.islink(confdir):
             print(confdir)
         else:
@@ -155,17 +128,10 @@ def drsetConfDir(pname, sver):
 
 
 def setConfDir(pname, sver, cver):
-    '''
-    e.g. /opt/anyscale/3.3.0.1/zookeeper/conf -> /etc/zookeeper/conf -> /opt/anyscale/3.3.0.1/etc/zookeeper/conf.dist.0
-    '''
     check(sver, pname, cver, "set")
-    for confmapkey, confmapval in confmap.items():
-        # e.g. /opt/anyscale/3.3.0.1/etc/zookeeper/conf.dist.0
-        path = os.path.join(root, sver, vconfroot, confmapkey, vconf_name)
-        if cver:
-            path = os.path.join(root, sver, vconfroot, confmapkey, vconf_name+'.'+cver)
-        # e.g. /opt/anyscale/3.3.0.1/zookeeper/conf
-        confdir = os.path.join(root, sver, lib_root, pname, confmapval)
+    for confmapkey,confmapval in confmap.items():
+        path = os.path.join(vconfroot,confmapkey,sver,cver)
+        confdir = os.path.join(root,sver,pname,confmapval)
 
         if os.path.exists(confdir) and not os.path.islink(confdir):
             raise Exception("Expected confdir %s to be a symlink." % confdir)
@@ -179,12 +145,8 @@ def setConfDir(pname, sver, cver):
             else:
                 os.remove(confdir)
 
-        os.symlink('/etc/{0}/conf'.format(pname), confdir)
-        print(confdir + " -> " + '/etc/{0}/conf'.format(pname))
-        print('alternatives --install /etc/{0}/conf {0}-conf {1} 30'.format(pname, path))
-        os.system('alternatives --install /etc/{0}/conf {0}-conf {1} 30'.format(pname, path))
-        os.system('alternatives --set {0}-conf {1}'.format(pname, path))
-        print('/etc/{0}/conf'.format(pname) + " -> " + path)
+        os.symlink(path, confdir)
+        print(confdir + " -> " + path)
 
 
 # Start of main
@@ -196,17 +158,15 @@ parser.add_option("-p", "--package", action="store", dest="pname",
 parser.add_option("-s", "--stack-version", action="store", dest="sver",
                   help="stack verison number")
 parser.add_option("-c", "--conf-version", action="store", dest="cver",
-                  help="conf verison number", default=None)
+                  help="conf verison number", default = '0' )
 
 (options, args) = parser.parse_args()
 '''default conf mapping'''
-confmap = {options.pname: "conf"}
+confmap = {options.pname : "conf"}
 '''conf mapping if the pkg name is hive-hcatalog'''
 if options.pname == "hive-hcatalog":
-    confmap = {"hive-hcatalog": "etc/hcatalog",
-               "hive-webhcat": "etc/webhcat"}
-
-
+    confmap = {"hive-hcatalog":"etc/hcatalog",
+               "hive-webhcat":"etc/webhcat"}
 
 if options.help or len(args) == 0:
     printHelp()
