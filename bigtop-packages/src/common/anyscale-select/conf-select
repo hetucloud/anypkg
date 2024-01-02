@@ -28,13 +28,13 @@ from params import stack_root
 root = stack_root
 current = root + "/current"
 vconfroot = 'etc'
-lib_root = "opt/anyscale"
+lib_root = ""
 vconf_name = "conf.dist"
 packages = ("hadoop", "hbase", "hive", "hive-hcatalog",
             "kafka", "oozie", "spark", "tez",
             "zookeeper", "zeppelin", "flink", "solr", "ranger-admin", "ranger-usersync", "ranger-tagsync")
 ''' conf link
-/opt/anyscale/3.3.0.1/usr/lib/${pname}/conf -> /etc/${pname}/conf -> /etc/alternatives/${pname}-conf -> /opt/anyscale/3.3.0.1/etc/${pname}/conf.dist.0
+/opt/anyscale/3.3.0.1-1/${pname}/conf -> /etc/${pname}/conf -> /etc/alternatives/${pname}-conf -> /opt/anyscale/3.3.0.1-1/etc/${pname}/conf.dist.0
 '''
 
 
@@ -71,8 +71,9 @@ def chkPkg(sver, pname):
 def chksVer(sver):
     '''
     returns True if the stack version number exists
-    e.g. /opt/anyscale/3.3.0.1/lib
+    e.g. /opt/anyscale/3.3.0.1-1
     '''
+    print(os.path.join(root, sver, lib_root))
     if not os.path.isdir(os.path.join(root, sver, lib_root)):
         print(sver + " Incorrect stack version")
         sys.exit(1)

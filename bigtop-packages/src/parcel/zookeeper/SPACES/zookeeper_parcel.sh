@@ -154,7 +154,11 @@ tar -czvf $PARCELS_DIR/zookeeper_$PARCEL_VERSION.parcel  -C $PARCEL_INSTALL_PREF
 # Note: That docker needs to be run as a root user
 pushd "$PARCEL_INSTALL_PREFX"
 if [ -n "$DOCKER_CREDENTIALS" ]; then
-  docker build -t hetudb/zookeeper:$PARCEL_VERSION -f $PARCEL_SPACES_DIR/Dockerfile .
+  docker build \
+  --build-arg STACK_VERSION=$STACK_VERSION \
+  --build-arg BUILD_NUMBER=$BUILD_NUMBER  \
+  --build-arg PARCEL_VERSION=$PARCEL_VERSION \
+  -t hetudb/zookeeper:$PARCEL_VERSION -f $PARCEL_SPACES_DIR/Dockerfile .
   echo ${DOCKER_CREDENTIALS} | docker login -u ${DOCKER_USER} --password-stdin
   docker push hetudb/zookeeper:$PARCEL_VERSION
 fi

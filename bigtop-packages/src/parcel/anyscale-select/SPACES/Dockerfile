@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM alpine:latest
-
-RUN apk --no-cache add python3
+FROM centos:7.9.2009
 
 COPY opt /opt

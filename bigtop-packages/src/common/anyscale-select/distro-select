@@ -212,7 +212,8 @@ def setPackages(packages, version, rpm_mode):
     printHelp()
     sys.exit(1)
 
-  target = root + "/" + version + lib_root
+  # target = root + "/" + version + lib_root
+  target = root + "/" + version
   if not os.path.isdir(target):
     print("ERROR: Invalid version " + version)
     print('')
